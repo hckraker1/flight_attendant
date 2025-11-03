@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>محاضرة قسم الضيافة الجوية - اكاديمية سكاي ايجلز</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
+        .container { max-width: 900px; margin: 0 auto; background: white; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); overflow: hidden; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 40px 20px; text-align: center; }
+        .header .academy { font-size: 1.4em; font-weight: bold; margin: 10px 0; letter-spacing: 1px; }
+        .header h1 { font-size: 2.5em; margin: 15px 0; }
+        .header .cap { font-size: 1.2em; font-weight: bold; margin-top: 15px; letter-spacing: 0.5px; }
+        .content { padding: 40px; }
+        .section { display: none; }
+        .section.active { display: block; }
+        .lesson-content { line-height: 1.8; color: #333; }
+        .lesson-content h2 { color: #667eea; margin: 25px 0 15px 0; font-size: 1.8em; }
+        .lesson-content h3 { color: #764ba2; margin: 20px 0 10px 0; }
+        .lesson-content ul { margin: 15px 0 15px 30px; }
+        .emoji { font-size: 2.5em; margin: 20px 0; text-align: center; }
+        .timer-section { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 10px; margin-bottom: 25px; display: flex; justify-content: space-between; }
+        .timer { font-size: 2em; font-weight: bold; }
+        .timer.warning { color: #ffeb3b; animation: blink 1s infinite; }
+        .timer.danger { color: #f44336; animation: blink 0.5s infinite; }
+        @keyframes blink { 0%, 50% { opacity: 1; } 51%, 100% { opacity: 0.5; } }
+        .progress { text-align: center; color: #667eea; font-weight: bold; margin-bottom: 20px; }
+        .progress-bar { width: 100%; height: 8px; background: #e0e0e0; border-radius: 4px; margin-top: 10px; overflow: hidden; }
+        .progress-bar-fill { height: 100%; background: linear-gradient(90deg, #667eea 0%, #764ba2 100%); width: 0%; transition: width 0.3s; }
+        .quiz-question { background: #f8f9ff; border-right: 4px solid #667eea; padding: 25px; margin-bottom: 25px; border-radius: 10px; }
+        .quiz-question h3 { color: #667eea; margin-bottom: 20px; font-size: 1.1em; }
+        .question-type { font-size: 0.9em; color: #764ba2; font-weight: bold; margin-bottom: 10px; }
+        .options { display: flex; flex-direction: column; gap: 12px; }
+        .option { padding: 15px; background: white; border: 2px solid #e0e0e0; border-radius: 8px; cursor: pointer; transition: all 0.3s; }
+        .option:hover:not(.disabled) { border-color: #667eea; background: #f0f2ff; }
+        .option.correct { border-color: #4caf50; background: #4caf50; color: white; }
+        .option.incorrect { border-color: #f44336; background: #f44336; color: white; }
+        .option.disabled { cursor: not-allowed; opacity: 0.7; }
+        .feedback { margin-top: 15px; padding: 15px; border-radius: 8px; display: none; font-size: 1.05em; }
+        .feedback.show { display: block; }
+        .feedback.correct { background: #c8e6c9; color: #1b5e20; border-left: 4px solid #4caf50; }
+        .feedback.incorrect { background: #ffcdd2; color: #b71c1c; border-left: 4px solid #f44336; }
+        .nav-buttons { display: flex; gap: 15px; justify-content: center; margin-top: 40px; }
+        button { padding: 15px 30px; font-size: 1.1em; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4); }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-secondary { background: #e0e0e0; color: #333; }
+        .score-board { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 10px; text-align: center; margin: 20px 0; }
+        .score-board h2 { font-size: 2em; margin-bottom: 10px; }
+        .score-details { background: #f8f9ff; padding: 20px; border-radius: 10px; margin: 20px 0; }
+        .start-screen { text-align: center; }
+        .start-screen h2 { color: #667eea; margin: 20px 0; }
+        .info-box { background: #e3f2fd; border-right: 4px solid #667eea; padding: 20px; border-radius: 8px; margin: 20px 0; }
+        
+        /* أنماط جديدة */
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: bold; color: #333; }
+        .form-control { width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 1em; }
+        .form-control:focus { border-color: #667eea; outline: none; }
+        .login-form { max-width: 400px; margin: 0 auto; }
+        .student-info { background: #e3f2fd; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
+        .student-info h3 { color: #667eea; margin-bottom: 10px; }
+        .teacher-panel { text-align: center; }
+        .teacher-panel h2 { color: #667eea; margin-bottom: 20px; }
+        .student-list { margin-top: 30px; }
+        .student-card { background: #f8f9ff; border-radius: 10px; padding: 20px; margin-bottom: 15px; border-right: 4px solid #667eea; }
+        .student-card h4 { color: #667eea; margin-bottom: 10px; }
+        .student-card p { margin: 5px 0; }
+        .question-details { margin-top: 15px; }
+        .question-result { padding: 10px; margin: 5px 0; border-radius: 5px; }
+        .question-result.correct { background: #c8e6c9; color: #1b5e20; }
+        .question-result.incorrect { background: #ffcdd2; color: #b71c1c; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin: 20px 0; }
+        .stat-box { background: #f8f9ff; padding: 15px; border-radius: 8px; text-align: center; }
+        .stat-box h3 { color: #667eea; margin-bottom: 10px; }
+        .stat-box .number { font-size: 2em; font-weight: bold; }
+        .back-link { text-align: center; margin-top: 20px; }
+        .back-link a { color: #667eea; text-decoration: none; font-weight: bold; }
+        .error-message { color: #f44336; margin-top: 5px; font-size: 0.9em; }
+        .success-message { color: #4caf50; margin-top: 5px; font-size: 0.9em; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="academy">اكاديمية سكاي ايجلز</div>
+            <h1>✈️ امتحان عالم الطيران</h1>
+            <div class="academy">قسم الضيافة الجوية</div>
+            <p style="margin-top: 15px; font-size: 0.95em;">30 سؤال - 30 دقيقة</p>
+            <div class="cap">CAP: Peter N.T</div>
+        </div>
+        
+        <div class="content">
+            <!-- صفحة تسجيل الطالب -->
+            <div id="studentRegistration" class="section active">
+                <div class="start-screen">
+                    <h2>🎓 تسجيل الطالب</h2>
+                    <div class="info-box">
+                        <strong>يرجى ملء البيانات التالية قبل بدء الامتحان:</strong>
+                        <div style="margin-top: 10px;">✓ يجب إدخال الاسم الكامل</div>
+                        <div>✓ يجب إدخال رقم امتحان غير مكرر</div>
+                        <div>✓ لا يمكن بدء الامتحان بدون التسجيل</div>
+                    </div>
+                    <div class="login-form">
+                        <div class="form-group">
+                            <label for="studentName">الاسم الكامل:</label>
+                            <input type="text" id="studentName" class="form-control" placeholder="أدخل اسمك الكامل">
+                            <div id="nameError" class="error-message" style="display: none;">يرجى إدخال الاسم الكامل</div>
+                        </div>
+                        <div class="form-group">
+                            <label for="examNumber">رقم الامتحان:</label>
+                            <input type="number" id="examNumber" class="form-control" placeholder="أدخل رقم الامتحان">
+                            <div id="numberError" class="error-message" style="display: none;">يرجى إدخال رقم امتحان صحيح</div>
+                            <div id="duplicateError" class="error-message" style="display: none;">رقم الامتحان مستخدم مسبقاً</div>
+                        </div>
+                        <div class="nav-buttons">
+                            <button class="btn-primary" onclick="registerStudent()">تسجيل وبدء الامتحان</button>
+                        </div>
+                    </div>
+                    <div class="back-link">
+                        <a href="#" onclick="showSection('teacherLogin')">دخول المدرس</a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- صفحة دخول المدرس -->
+            <div id="teacherLogin" class="section">
+                <div class="start-screen">
+                    <h2>👨‍🏫 دخول المدرس</h2>
+                    <div class="login-form">
+                        <div class="form-group">
+                            <label for="teacherUsername">اسم المستخدم:</label>
+                            <input type="text" id="teacherUsername" class="form-control" placeholder="أدخل اسم المستخدم">
+                        </div>
+                        <div class="form-group">
+                            <label for="teacherPassword">كلمة المرور:</label>
+                            <input type="password" id="teacherPassword" class="form-control" placeholder="أدخل كلمة المرور">
+                        </div>
+                        <div class="nav-buttons">
+                            <button class="btn-primary" onclick="teacherLogin()">دخول</button>
+                            <button class="btn-secondary" onclick="showSection('studentRegistration')">رجوع</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- صفحة تقارير المدرس -->
+            <div id="teacherPanel" class="section">
+                <div class="teacher-panel">
+                    <h2>📊 تقارير الطلاب</h2>
+                    
+                    <div class="stats-grid">
+                        <div class="stat-box">
+                            <h3>عدد الطلاب</h3>
+                            <div class="number" id="totalStudents">0</div>
+                        </div>
+                        <div class="stat-box">
+                            <h3>متوسط النتائج</h3>
+                            <div class="number" id="averageScore">0%</div>
+                        </div>
+                        <div class="stat-box">
+                            <h3>أعلى نتيجة</h3>
+                            <div class="number" id="highestScore">0</div>
+                        </div>
+                        <div class="stat-box">
+                            <h3>أقل نتيجة</h3>
+                            <div class="number" id="lowestScore">0</div>
+                        </div>
+                    </div>
+                    
+                    <div class="student-list" id="studentList">
+                        <!-- سيتم ملء هذه المنطقة بقائمة الطلاب -->
+                    </div>
+                    
+                    <div class="nav-buttons">
+                        <button class="btn-secondary" onclick="showSection('teacherLogin')">رجوع</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- صفحة تعليمات الامتحان -->
+            <div id="lesson" class="section">
+                <div class="student-info">
+                    <h3>معلومات الطالب:</h3>
+                    <p><strong>الاسم:</strong> <span id="displayStudentName"></span></p>
+                    <p><strong>رقم الامتحان:</strong> <span id="displayExamNumber"></span></p>
+                    <p><strong>وقت التسجيل:</strong> <span id="displayRegistrationTime"></span></p>
+                </div>
+                
+                <div class="lesson-content">
+                    <h2>📚 تعليمات الامتحان</h2>
+                    <div class="emoji">✈️</div>
+                    <h3>أنواع الأسئلة:</h3>
+                    <ul>
+                        <li><strong>اختيار من متعدد:</strong> اختر الإجابة الصحيحة (أ، ب، ج، د)</li>
+                        <li><strong>صح أو خطأ:</strong> حدد ما إذا كانت العبارة صحيحة أم خاطئة</li>
+                        <li><strong>إكمال العبارات:</strong> أكمل الجملة بالإجابة الصحيحة</li>
+                        <li><strong>تعريفات:</strong> اختر التعريف الصحيح للمفهوم</li>
+                    </ul>
+                    <h3>نظام الامتحان:</h3>
+                    <ul>
+                        <li>كل إجابة صحيحة = نقطة واحدة</li>
+                        <li>كل إجابة خاطئة = -0.5 نقطة</li>
+                        <li>الوقت المحدد: 30 دقيقة</li>
+                        <li>الدرجة النهائية: 30 نقطة</li>
+                    </ul>
+                    <div class="nav-buttons">
+                        <button class="btn-primary" onclick="goToStart()">ابدأ الامتحان</button>
+                        <button class="btn-secondary" onclick="showSection('studentRegistration')">رجوع</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- صفحة بدء الامتحان -->
+            <div id="startScreen" class="section">
+                <div class="start-screen">
+                    <h2>🎓 هل انت مستعد؟</h2>
+                    <div class="info-box">
+                        <strong>معلومات الامتحان:</strong>
+                        <div style="margin-top: 10px;">✓ 30 سؤال متنوع</div>
+                        <div>✓ 30 دقيقة وقت</div>
+                        <div>✓ نظام خصم</div>
+                        <div>✓ تركيز ضروري</div>
+                    </div>
+                    <div class="nav-buttons">
+                        <button class="btn-primary" onclick="startQuiz()">ابدأ الآن</button>
+                        <button class="btn-secondary" onclick="backToLesson()">العودة</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- صفحة الامتحان -->
+            <div id="quiz" class="section">
+                <div class="timer-section">
+                    <div>
+                        <div style="font-size: 0.9em;">الوقت:</div>
+                        <div id="timer" class="timer">30:00</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 0.9em;">الدرجة</div>
+                        <div id="currentScore" style="font-size: 1.5em; font-weight: bold;">0</div>
+                    </div>
+                </div>
+                
+                <div class="progress">
+                    <span id="progressText">السؤال 1 من 30</span>
+                    <div class="progress-bar">
+                        <div class="progress-bar-fill" id="progressBar"></div>
+                    </div>
+                </div>
+                
+                <div id="quizContainer"></div>
+                
+                <div id="results" style="display: none;">
+                    <div class="score-board">
+                        <h2 id="resultTitle">انتهى الامتحان</h2>
+                        <p id="finalScore"></p>
+                        <p id="scorePercentage"></p>
+                    </div>
+                    <div class="score-details">
+                        <p><strong>الإجابات الصحيحة:</strong> <span id="correctAnswers">0</span></p>
+                        <p><strong>الإجابات الخاطئة:</strong> <span id="wrongAnswers">0</span></p>
+                        <p><strong>النقاط النهائية:</strong> <span id="totalPoints">0</span>/30</p>
+                    </div>
+                    <div class="nav-buttons">
+                        <button class="btn-primary" onclick="restartQuiz()">إعادة الامتحان</button>
+                        <button class="btn-secondary" onclick="showSection('studentRegistration')">الصفحة الرئيسية</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // بيانات التطبيق
+        const allQuestions = [
+            { type: "اختيار من متعدد", q: "ماذا ترمز أسطورة إيكاروس في تاريخ الطيران؟", opts: ["الرغبة في كسر حدود الجاذبية والطموح الإنساني نحو الطيران", "الخوف من السقوط والابتعاد عن المخاطر", "استخدام الطيران لأغراض عسكرية", "الاعتماد على التكنولوجيا الحديثة في التحليق"], ans: 0 },
+            { type: "اختيار من متعدد", q: "من هو المخترع الذي رسم تصاميم أولية لأجهزة الطيران خلال عصر النهضة؟", opts: ["عباس بن فرناس", "ليوناردو دافنشي", "رايت برازرز", "الأخوان مونغولفييه"], ans: 1 },
+            { type: "اختيار من متعدد", q: "من قام بأول رحلة ببالون هوائي مسيّر عام 1783؟", opts: ["الأخوان رايت", "الأخوان مونغولفييه", "ليوناردو دافنشي", "عباس بن فرناس"], ans: 1 },
+            { type: "اختيار من متعدد", q: "متى نجح الأخوان رايت في أول رحلة طيران مدفوع ومتحكم به؟", opts: ["عام 1895", "عام 1903", "عام 1920", "عام 1945"], ans: 1 },
+            { type: "اختيار من متعدد", q: "ما العنصر الذي يمثل نظام إدارة وتنظيم حركة الطائرات في الجو؟", opts: ["المطارات", "مراقبة الحركة الجوية (ATC)", "المحركات والدفع", "إلكترونيات الطيران"], ans: 1 },
+            { type: "اختيار من متعدد", q: "أي من الخيارات التالية يُعد من الابتكارات التكنولوجية في مجال الطيران؟", opts: ["زيادة عدد المقاعد فقط", "استخدام مواد خفيفة الوزن ومتينة", "تقليل عدد المحركات", "الاعتماد الكامل على الطيار الآلي"], ans: 1 },
+            { type: "اختيار من متعدد", q: "ما نسبة انبعاثات ثاني أكسيد الكربون التي يسببها قطاع الطيران عالميًا؟", opts: ["1%", "2–3%", "5–7%", "أكثر من 10%"], ans: 1 },
+            { type: "اختيار من متعدد", q: "ما الهدف البيئي الذي تسعى شركات الطيران إلى تحقيقه بحلول عام 2050؟", opts: ["مضاعفة عدد الرحلات الجوية", "الوصول إلى صافي انبعاثات صفرية (Net Zero)", "إلغاء الرحلات القصيرة", "استبدال الطائرات بالنقل البحري"], ans: 1 },
+            { type: "صح أو خطأ", q: "أسطورة إيكاروس تمثل الخوف من الطيران والتقيد بحدود الأرض", opts: ["صح", "خطأ"], ans: 1 },
+            { type: "صح أو خطأ", q: "استخدم ليوناردو دافنشي الأجنحة الميكانيكية في اختراعاته لتقليد حركة الطيور", opts: ["صح", "خطأ"], ans: 0 },
+            { type: "صح أو خطأ", q: "الأخوان مونغولفييه نفذا أول رحلة طيران بمحرك نفاث", opts: ["صح", "خطأ"], ans: 1 },
+            { type: "صح أو خطأ", q: "نظام مراقبة الحركة الجوية يهدف إلى ضمان السلامة والكفاءة في التنقل الجوي", opts: ["صح", "خطأ"], ans: 0 },
+            { type: "صح أو خطأ", q: "المحركات الكهربائية تعتبر من أنظمة الدفع الحديثة في الطيران المستدام", opts: ["صح", "خطأ"], ans: 0 },
+            { type: "صح أو خطأ", q: "الطيران لا يساهم إطلاقًا في انبعاثات الكربون", opts: ["صح", "خطأ"], ans: 1 },
+            { type: "صح أو خطأ", q: "مهندسو الصيانة ومراقبو الحركة الجوية من الوظائف التقنية في مجال الطيران", opts: ["صح", "خطأ"], ans: 0 },
+            { type: "إكمال", q: "تمثل أسطورة _____ رمزًا للرغبة في كسر حدود الجاذبية وتحقيق حلم الطيران", opts: ["إيكاروس", "ليوناردو", "الأخوان رايت", "الأخوان مونغولفييه"], ans: 0 },
+            { type: "إكمال", q: "يُعد _____ من أوائل من صمموا نماذج طيران في عصر النهضة", opts: ["عباس بن فرناس", "ليوناردو دافنشي", "الأخوان رايت", "مونغولفييه"], ans: 1 },
+            { type: "إكمال", q: "قام الأخوان _____ بأول رحلة ببالون هوائي عام 1783", opts: ["رايت", "مونغولفييه", "فرناس", "دافنشي"], ans: 1 },
+            { type: "إكمال", q: "أول طيران مدفوع ومتحكم به تم عام _____ بواسطة الأخوين رايت", opts: ["1895", "1903", "1920", "1945"], ans: 1 },
+            { type: "إكمال", q: "يتكون نظام الطيران من أربعة عناصر رئيسية هي: الطائرات، _____ ، مراقبة الحركة الجوية، والمحركات", opts: ["المطارات", "الفنادق", "السيارات", "القطارات"], ans: 0 },
+            { type: "إكمال", q: "يُعد قطاع الطيران من أهم المحركات للاقتصاد العالمي من خلال دعمه _____ والسياحة", opts: ["السياسة", "التجارة", "الصناعة", "الزراعة"], ans: 1 },
+            { type: "إكمال", q: "من الابتكارات التكنولوجية في الطيران الحديثة _____ ووقود الطيران المستدام", opts: ["الأتمتة والذكاء الاصطناعي", "المحركات القديمة", "زيادة الوزن", "تقليل الأمان"], ans: 0 },
+            { type: "إكمال", q: "تسعى شركات الطيران إلى تقليل الأثر البيئي من خلال برامج _____ والانبعاثات الصفرية", opts: ["تعويض الكربون", "زيادة الانبعاثات", "توسيع العمليات", "تقليل الصيانة"], ans: 0 },
+            { type: "تعريف", q: "ما التعريف الصحيح للطيران؟", opts: ["هو عملية انتقال الأجسام في الهواء باستخدام قوى الرفع والدفع", "هو النقل البري فقط", "هو النقل البحري فقط", "هو السفر بالقطار"], ans: 0 },
+            { type: "تعريف", q: "ما معنى مراقبة الحركة الجوية (ATC)؟", opts: ["إصلاح الطائرات", "نظام متكامل لتنظيم وتوجيه الطائرات لضمان السلامة", "نقل الركاب", "بيع التذاكر"], ans: 1 },
+            { type: "تعريف", q: "ما هو وقود الطيران المستدام (SAF)؟", opts: ["وقود تقليدي", "نوع من الوقود الصديق للبيئة يقلل انبعاثات الكربون", "زيت عادي", "ديزل"], ans: 1 },
+            { type: "تعريف", q: "ما معنى الطيران المستدام؟", opts: ["الطيران السريع فقط", "مفهوم يهدف إلى جعل الطيران أكثر كفاءة وأقل ضررًا للبيئة", "الطيران الثقيل", "الطيران العسكري"], ans: 1 },
+            { type: "تعريف", q: "من هم الأخوان رايت؟", opts: ["موسيقيان", "أورفيل وويلبر رايت، أول من نجح في رحلة طيران مدفوع عام 1903", "رسامان", "كاتبان"], ans: 1 },
+            { type: "تعريف", q: "ما هي ديناميكا الهواء في الطيران؟", opts: ["دراسة حركة الطائرات", "دراسة حركة الهواء وتأثيره على الأجسام المتحركة", "دراسة المحركات", "دراسة الوقود"], ans: 1 },
+            { type: "تعريف", q: "ما معنى الإلكترونيات الحديثة (Avionics) في الطيران؟", opts: ["الأنظمة الكهربائية الموجودة في الطائرة", "أنظمة متقدمة لتحسين سلامة وملاحة الطائرة", "المحركات النفاثة", "أنظمة الوقود"], ans: 1 }
+        ];
+        
+        // بيانات التطبيق
+        let questions = [];
+        let currentQuestion = 0;
+        let score = 0;
+        let correct = 0;
+        let wrong = 0;
+        let timeLeft = 1800;
+        let timerInterval = null;
+        let answered = false;
+        let studentAnswers = [];
+        let currentStudent = null;
+        
+        // تخزين بيانات الطلاب
+        let studentsData = JSON.parse(localStorage.getItem('studentsData')) || [];
+        
+        // معلومات المدرس
+        const teacherCredentials = {
+            username: "teacher",
+            password: "123456"
+        };
+        
+        // وظائف التنقل
+        function showSection(sectionId) {
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.remove('active');
+            });
+            document.getElementById(sectionId).classList.add('active');
+            
+            // إذا كانت صفحة المدرس، قم بتحديث البيانات
+            if (sectionId === 'teacherPanel') {
+                updateTeacherPanel();
+            }
+        }
+        
+        // تسجيل الطالب
+        function registerStudent() {
+            const studentName = document.getElementById('studentName').value.trim();
+            const examNumber = document.getElementById('examNumber').value;
+            
+            // إخفاء جميع رسائل الخطأ أولاً
+            document.getElementById('nameError').style.display = 'none';
+            document.getElementById('numberError').style.display = 'none';
+            document.getElementById('duplicateError').style.display = 'none';
+            
+            // التحقق من صحة البيانات
+            let isValid = true;
+            
+            if (!studentName) {
+                document.getElementById('nameError').style.display = 'block';
+                isValid = false;
+            }
+            
+            if (!examNumber || examNumber <= 0) {
+                document.getElementById('numberError').style.display = 'block';
+                isValid = false;
+            }
+            
+            // التحقق من عدم تكرار رقم الامتحان
+            const isDuplicate = studentsData.some(student => student.examNumber == examNumber);
+            if (isDuplicate) {
+                document.getElementById('duplicateError').style.display = 'block';
+                isValid = false;
+            }
+            
+            if (!isValid) return;
+            
+            // حفظ بيانات الطالب
+            currentStudent = {
+                name: studentName,
+                examNumber: examNumber,
+                startTime: new Date().toISOString()
+            };
+            
+            // عرض بيانات الطالب في صفحة التعليمات
+            document.getElementById('displayStudentName').textContent = studentName;
+            document.getElementById('displayExamNumber').textContent = examNumber;
+            document.getElementById('displayRegistrationTime').textContent = new Date().toLocaleString('ar-EG');
+            
+            // الانتقال إلى صفحة التعليمات
+            showSection('lesson');
+        }
+        
+        // دخول المدرس
+        function teacherLogin() {
+            const username = document.getElementById('teacherUsername').value;
+            const password = document.getElementById('teacherPassword').value;
+            
+            if (username === teacherCredentials.username && password === teacherCredentials.password) {
+                showSection('teacherPanel');
+            } else {
+                alert('اسم المستخدم أو كلمة المرور غير صحيحة');
+            }
+        }
+        
+        // تحديث لوحة المدرس
+        function updateTeacherPanel() {
+            const studentList = document.getElementById('studentList');
+            studentList.innerHTML = '';
+            
+            if (studentsData.length === 0) {
+                studentList.innerHTML = '<p>لا توجد بيانات للطلاب بعد</p>';
+                document.getElementById('totalStudents').textContent = '0';
+                document.getElementById('averageScore').textContent = '0%';
+                document.getElementById('highestScore').textContent = '0';
+                document.getElementById('lowestScore').textContent = '0';
+                return;
+            }
+            
+            // تحديث الإحصائيات
+            document.getElementById('totalStudents').textContent = studentsData.length;
+            
+            const scores = studentsData.map(student => student.score);
+            const averageScore = scores.reduce((a, b) => a + b, 0) / scores.length;
+            document.getElementById('averageScore').textContent = Math.round(averageScore) + '%';
+            document.getElementById('highestScore').textContent = Math.max(...scores) + '%';
+            document.getElementById('lowestScore').textContent = Math.min(...scores) + '%';
+            
+            // عرض قائمة الطلاب
+            studentsData.forEach((student, index) => {
+                const studentCard = document.createElement('div');
+                studentCard.className = 'student-card';
+                
+                studentCard.innerHTML = `
+                    <h4>${student.name} (رقم الامتحان: ${student.examNumber})</h4>
+                    <p><strong>النتيجة:</strong> ${student.score}%</p>
+                    <p><strong>الإجابات الصحيحة:</strong> ${student.correctAnswers} من 30</p>
+                    <p><strong>الوقت:</strong> ${student.timeTaken}</p>
+                    <p><strong>تاريخ الامتحان:</strong> ${new Date(student.endTime).toLocaleString('ar-EG')}</p>
+                    <button class="btn-secondary" onclick="showStudentDetails(${index})" style="margin-top: 10px;">عرض التفاصيل</button>
+                    <div id="studentDetails${index}" class="question-details" style="display: none;">
+                        ${generateStudentDetails(student)}
+                    </div>
+                `;
+                
+                studentList.appendChild(studentCard);
+            });
+        }
+        
+        // عرض تفاصيل الطالب
+        function showStudentDetails(index) {
+            const detailsElement = document.getElementById(`studentDetails${index}`);
+            if (detailsElement.style.display === 'none') {
+                detailsElement.style.display = 'block';
+            } else {
+                detailsElement.style.display = 'none';
+            }
+        }
+        
+        // توليد تفاصيل إجابات الطالب
+        function generateStudentDetails(student) {
+            let html = '<h4>تفاصيل الإجابات:</h4>';
+            
+            student.answers.forEach((answer, qIndex) => {
+                const question = allQuestions[qIndex];
+                const isCorrect = answer.selected === question.ans;
+                
+                html += `
+                    <div class="question-result ${isCorrect ? 'correct' : 'incorrect'}">
+                        <p><strong>س ${qIndex + 1}:</strong> ${question.q}</p>
+                        <p><strong>إجابتك:</strong> ${question.opts[answer.selected]}</p>
+                        <p><strong>الإجابة الصحيحة:</strong> ${question.opts[question.ans]}</p>
+                    </div>
+                `;
+            });
+            
+            return html;
+        }
+        
+        // وظائف الامتحان
+        function shuffle(arr) {
+            let a = [...arr];
+            for (let i = a.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [a[i], a[j]] = [a[j], a[i]];
+            }
+            return a;
+        }
+        
+        function goToStart() {
+            showSection('startScreen');
+        }
+        
+        function backToLesson() {
+            showSection('lesson');
+        }
+        
+        function startQuiz() {
+            // التأكد من أن الطالب مسجل
+            if (!currentStudent) {
+                alert('يرجى التسجيل أولاً قبل بدء الامتحان');
+                showSection('studentRegistration');
+                return;
+            }
+            
+            questions = shuffle(allQuestions);
+            currentQuestion = 0;
+            score = 0;
+            correct = 0;
+            wrong = 0;
+            timeLeft = 1800;
+            answered = false;
+            studentAnswers = [];
+            
+            showSection('quiz');
+            
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                updateTimer();
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    endQuiz();
+                }
+            }, 1000);
+            
+            displayQuestion();
+        }
+        
+        function updateTimer() {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            const timerEl = document.getElementById('timer');
+            timerEl.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            
+            if (timeLeft <= 600) timerEl.classList.add('warning');
+            if (timeLeft <= 60) {
+                timerEl.classList.remove('warning');
+                timerEl.classList.add('danger');
+            }
+        }
+        
+        function displayQuestion() {
+            if (currentQuestion >= questions.length) {
+                endQuiz();
+                return;
+            }
+            
+            answered = false;
+            const q = questions[currentQuestion];
+            const progressPercent = (currentQuestion / questions.length) * 100;
+            
+            document.getElementById('progressBar').style.width = progressPercent + '%';
+            document.getElementById('progressText').textContent = `السؤال ${currentQuestion + 1} من ${questions.length}`;
+            document.getElementById('currentScore').textContent = score.toFixed(1);
+            
+            let html = `<div class="quiz-question"><div class="question-type">${q.type}</div><h3>${q.q}</h3><div class="options">`;
+            
+            q.opts.forEach((opt, idx) => {
+                html += `<div class="option" onclick="selectOpt(${idx})">${opt}</div>`;
+            });
+            
+            html += `</div><div class="feedback" id="feedback"></div><div class="nav-buttons"><button class="btn-primary" id="nextBtn" onclick="nextQ()" disabled>التالي</button></div></div>`;
+            
+            document.getElementById('quizContainer').innerHTML = html;
+        }
+        
+        function selectOpt(idx) {
+            if (answered) return;
+            answered = true;
+            
+            const opts = document.querySelectorAll('.option');
+            opts.forEach(o => o.classList.add('disabled'));
+            
+            const q = questions[currentQuestion];
+            const feedback = document.getElementById('feedback');
+            const nextBtn = document.getElementById('nextBtn');
+            
+            // حفظ إجابة الطالب
+            studentAnswers.push({
+                questionIndex: currentQuestion,
+                selected: idx,
+                correct: idx === q.ans
+            });
+            
+            if (idx === q.ans) {
+                opts[idx].classList.add('correct');
+                feedback.className = 'feedback show correct';
+                feedback.innerHTML = '✅ صحيح!';
+                score += 1;
+                correct++;
+            } else {
+                opts[idx].classList.add('incorrect');
+                opts[q.ans].classList.add('correct');
+                feedback.className = 'feedback show incorrect';
+                feedback.innerHTML = `❌ خطأ! الإجابة الصحيحة هي: ${q.opts[q.ans]}`;
+                score -= 0.5;
+                wrong++;
+            }
+            
+            document.getElementById('currentScore').textContent = score.toFixed(1);
+            nextBtn.disabled = false;
+        }
+        
+        function nextQ() {
+            currentQuestion++;
+            displayQuestion();
+        }
+        
+        function endQuiz() {
+            if (timerInterval) clearInterval(timerInterval);
+            
+            // حساب النتيجة النهائية كنسبة مئوية
+            const finalScore = Math.max(0, score);
+            const percentage = Math.round((finalScore / 30) * 100);
+            
+            // حفظ بيانات الطالب
+            if (currentStudent) {
+                const studentResult = {
+                    ...currentStudent,
+                    score: percentage,
+                    correctAnswers: correct,
+                    wrongAnswers: wrong,
+                    finalScore: finalScore.toFixed(1),
+                    timeTaken: formatTime(1800 - timeLeft),
+                    endTime: new Date().toISOString(),
+                    answers: studentAnswers
+                };
+                
+                studentsData.push(studentResult);
+                localStorage.setItem('studentsData', JSON.stringify(studentsData));
+            }
+            
+            document.getElementById('quizContainer').style.display = 'none';
+            document.getElementById('results').style.display = 'block';
+            
+            document.getElementById('finalScore').textContent = `درجتك: ${finalScore.toFixed(1)} من 30`;
+            document.getElementById('scorePercentage').textContent = `النسبة المئوية: ${percentage}%`;
+            document.getElementById('correctAnswers').textContent = correct;
+            document.getElementById('wrongAnswers').textContent = wrong;
+            document.getElementById('totalPoints').textContent = finalScore.toFixed(1);
+            
+            if (percentage >= 90) document.getElementById('resultTitle').innerHTML = '🏆 ممتاز جداً!';
+            else if (percentage >= 80) document.getElementById('resultTitle').innerHTML = '🎖️ ممتاز!';
+            else if (percentage >= 70) document.getElementById('resultTitle').innerHTML = '👍 جيد جداً!';
+            else if (percentage >= 60) document.getElementById('resultTitle').innerHTML = '👌 جيد!';
+            else document.getElementById('resultTitle').innerHTML = '💪 حاول مرة أخرى!';
+        }
+        
+        function restartQuiz() {
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('quizContainer').style.display = 'block';
+            startQuiz();
+        }
+        
+        // وظيفة مساعدة لتنسيق الوقت
+        function formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${minutes}:${secs.toString().padStart(2, '0')}`;
+        }
+    </script>
+</body>
+</html>
