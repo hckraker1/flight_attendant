@@ -104,6 +104,9 @@
         .modal-buttons { display: flex; gap: 15px; justify-content: center; margin-top: 20px; }
         .no-data { text-align: center; color: #666; padding: 40px; font-size: 1.1em; }
         .question-text { font-weight: bold; margin-bottom: 10px; color: #333; }
+        .security-alert { background: #fff3cd; border: 1px solid #ffeaa7; color: #856404; padding: 15px; border-radius: 8px; margin: 15px 0; text-align: center; }
+        .active-students-section { margin: 30px 0; }
+        .teacher-session-info { background: #e3f2fd; padding: 15px; border-radius: 10px; margin: 15px 0; text-align: center; }
     </style>
 </head>
 <body>
@@ -177,6 +180,13 @@
                 <div class="teacher-panel">
                     <h2>📊 لوحة تحكم المدرس</h2>
 
+                    <!-- معلومات جلسة المدرس -->
+                    <div class="teacher-session-info">
+                        <h3>👨‍🏫 معلومات الجلسة</h3>
+                        <p><strong>آخر تحديث:</strong> <span id="teacherLastUpdate">-</span></p>
+                        <p><strong>حالة الاتصال:</strong> <span id="connectionStatus" style="color: #4caf50;">● متصل</span></p>
+                    </div>
+
                     <div class="stats-grid">
                         <div class="stat-box">
                             <h3>عدد الطلاب</h3>
@@ -200,11 +210,12 @@
                         <button class="btn-warning" onclick="exportData()">📥 تصدير البيانات</button>
                         <button class="btn-danger" onclick="clearAllData()">🗑️ مسح كل البيانات</button>
                         <button class="btn-success" onclick="refreshActiveStudents()">🔄 تحديث الطلاب النشطين</button>
+                        <button class="btn-primary" onclick="startAutoRefresh()">🔄 التحديث التلقائي</button>
                     </div>
 
                     <!-- قسم الطلاب النشطين -->
                     <div class="active-students-section">
-                        <h3>🎯 الطلاب النشطين حالياً</h3>
+                        <h3>🎯 الطلاب النشطين حالياً <span id="activeStudentsCount">(0)</span></h3>
                         <div id="activeStudentsList">
                             <!-- سيتم ملء هذه المنطقة بالطلاب النشطين -->
                         </div>
@@ -262,7 +273,7 @@
             <!-- صفحة بدء الامتحان -->
             <div id="startScreen" class="section">
                 <div class="start-screen">
-                    <h2>🎓 هل انت مستعد؟</h2>
+                    <h2>🎓 هل انت مستقد؟</h2>
                     <div class="info-box">
                         <strong>معلومات الامتحان:</strong>
                         <div style="margin-top: 10px;">✓ 30 سؤال متنوع</div>
@@ -358,48 +369,6 @@
             }
         });
 
-        // منع السكرين شوت على الهواتف
-        document.addEventListener('visibilitychange', function() {
-            if (document.hidden) {
-                // إذا غادر الطالب الصفحة، أوقف المؤقت مؤقتاً
-                if (timerInterval && currentStudent) {
-                    clearInterval(timerInterval);
-                    alert('⚠️ تم اكتشاف محاولة الخروج من الصفحة!\nيرجى العودة فوراً للاستمرار في الامتحان.');
-                }
-            } else {
-                // عند العودة، أعد تشغيل المؤقت
-                if (currentStudent && questions.length > 0 && timeLeft > 0) {
-                    timerInterval = setInterval(() => {
-                        timeLeft--;
-                        updateTimer();
-
-                        // حفظ حالة الامتحان كل 10 ثوانٍ
-                        if (timeLeft % 10 === 0) {
-                            saveExamState();
-                        }
-
-                        // تحديث الوقت في الطلاب النشطين
-                        const activeStudentIndex = activeStudents.findIndex(student => student.sessionId === currentStudent.sessionId);
-                        if (activeStudentIndex !== -1) {
-                            activeStudents[activeStudentIndex].timeLeft = timeLeft;
-                            activeStudents[activeStudentIndex].lastUpdate = new Date().toISOString();
-                            localStorage.setItem('activeStudents', JSON.stringify(activeStudents));
-                        }
-
-                        if (timeLeft <= 0) {
-                            clearInterval(timerInterval);
-                            endQuiz();
-                        }
-                    }, 1000);
-                }
-            }
-        });
-
-        // التحقق من امتحان غير مكتمل عند تحميل الصفحة
-        window.addEventListener('load', function() {
-            checkForIncompleteExam();
-        });
-
         // بيانات التطبيق
         const allQuestions = [
             { type: "اختيار من متعدد", q: "ماذا ترمز أسطورة إيكاروس في تاريخ الطيران؟", opts: ["الرغبة في كسر حدود الجاذبية والطموح الإنساني نحو الطيران", "الخوف من السقوط والابتعاد عن المخاطر", "استخدام الطيران لأغراض عسكرية", "الاعتماد على التكنولوجيا الحديثة في التحليق"], ans: 0 },
@@ -452,6 +421,16 @@
 
         // تخزين بيانات الطلاب
         let studentsData = JSON.parse(localStorage.getItem('studentsData')) || [];
+
+        // إعدادات المدرس
+        let teacherSettings = JSON.parse(localStorage.getItem('teacherSettings')) || {
+            autoRefresh: false,
+            refreshInterval: 5000,
+            lastLogin: null
+        };
+
+        // متغيرات التحديث التلقائي
+        let autoRefreshInterval = null;
 
         // حفظ حالة الامتحان
         function saveExamState() {
@@ -574,6 +553,7 @@
             // إذا كانت صفحة المدرس، قم بتحديث البيانات
             if (sectionId === 'teacherPanel') {
                 updateTeacherPanel();
+                updateTeacherSessionInfo();
             }
         }
         
@@ -647,6 +627,10 @@
             const password = document.getElementById('teacherPassword').value;
             
             if (username === teacherCredentials.username && password === teacherCredentials.password) {
+                // حفظ معلومات تسجيل الدخول
+                teacherSettings.lastLogin = new Date().toISOString();
+                localStorage.setItem('teacherSettings', JSON.stringify(teacherSettings));
+                
                 showSection('teacherPanel');
             } else {
                 alert('اسم المستخدم أو كلمة المرور غير صحيحة');
@@ -704,6 +688,13 @@
 
             // تحديث قائمة الطلاب النشطين
             updateActiveStudentsList();
+        }
+
+        // تحديث معلومات جلسة المدرس
+        function updateTeacherSessionInfo() {
+            document.getElementById('teacherLastUpdate').textContent = new Date().toLocaleString('ar-EG');
+            document.getElementById('connectionStatus').textContent = '● متصل';
+            document.getElementById('connectionStatus').style.color = '#4caf50';
         }
         
         // عرض تفاصيل الطالب
@@ -862,7 +853,9 @@
         
         function performClearAll() {
             studentsData = [];
+            activeStudents = [];
             localStorage.setItem('studentsData', JSON.stringify(studentsData));
+            localStorage.setItem('activeStudents', JSON.stringify(activeStudents));
             updateTeacherPanel();
             closeModal();
             alert('تم مسح جميع البيانات بنجاح');
@@ -880,6 +873,7 @@
 
             if (activeStudents.length === 0) {
                 activeStudentsList.innerHTML = '<div class="no-data">لا يوجد طلاب نشطين حالياً</div>';
+                document.getElementById('activeStudentsCount').textContent = '(0)';
                 return;
             }
 
@@ -903,6 +897,9 @@
             });
 
             localStorage.setItem('activeStudents', JSON.stringify(activeStudents));
+
+            // تحديث العداد
+            document.getElementById('activeStudentsCount').textContent = `(${activeStudents.length})`;
 
             // عرض الطلاب النشطين
             activeStudents.forEach((student, index) => {
@@ -941,7 +938,27 @@
         // تحديث الطلاب النشطين
         function refreshActiveStudents() {
             updateActiveStudentsList();
-            alert('تم تحديث قائمة الطلاب النشطين');
+            updateTeacherSessionInfo();
+        }
+
+        // بدء التحديث التلقائي
+        function startAutoRefresh() {
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+                autoRefreshInterval = null;
+                alert('تم إيقاف التحديث التلقائي');
+                return;
+            }
+
+            teacherSettings.autoRefresh = true;
+            localStorage.setItem('teacherSettings', JSON.stringify(teacherSettings));
+
+            autoRefreshInterval = setInterval(() => {
+                refreshActiveStudents();
+                updateTeacherPanel();
+            }, teacherSettings.refreshInterval);
+
+            alert('تم تفعيل التحديث التلقائي كل 5 ثوانٍ');
         }
 
         // إضافة وقت للطالب
@@ -1262,6 +1279,69 @@
             const secs = seconds % 60;
             return `${minutes}:${secs.toString().padStart(2, '0')}`;
         }
+
+        // التحقق من امتحان غير مكتمل عند تحميل الصفحة
+        window.addEventListener('load', function() {
+            checkForIncompleteExam();
+            
+            // إذا كان المدرس مسجل الدخول، تحديث لوحة التحكم
+            if (teacherSettings.lastLogin) {
+                const lastLogin = new Date(teacherSettings.lastLogin);
+                const now = new Date();
+                const hoursDiff = (now - lastLogin) / (1000 * 60 * 60);
+                
+                // إذا كان آخر تسجيل دخول منذ أقل من 24 ساعة، استمر في الجلسة
+                if (hoursDiff < 24) {
+                    showSection('teacherPanel');
+                }
+            }
+        });
+
+        // منع الخروج من الصفحة أثناء الامتحان
+        window.addEventListener('beforeunload', function(e) {
+            if (currentStudent && questions.length > 0 && timeLeft > 0) {
+                e.preventDefault();
+                e.returnValue = 'لديك امتحان غير مكتمل! هل أنت متأكد من أنك تريد المغادرة؟';
+                return 'لديك امتحان غير مكتمل! هل أنت متأكد من أنك تريد المغادرة؟';
+            }
+        });
+
+        // التحقق من تغيير علامة التبويب
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden) {
+                // إذا غادر الطالب الصفحة، أوقف المؤقت مؤقتاً
+                if (timerInterval && currentStudent) {
+                    clearInterval(timerInterval);
+                    alert('⚠️ تم اكتشاف محاولة الخروج من الصفحة!\nيرجى العودة فوراً للاستمرار في الامتحان.');
+                }
+            } else {
+                // عند العودة، أعد تشغيل المؤقت
+                if (currentStudent && questions.length > 0 && timeLeft > 0) {
+                    timerInterval = setInterval(() => {
+                        timeLeft--;
+                        updateTimer();
+
+                        // حفظ حالة الامتحان كل 10 ثوانٍ
+                        if (timeLeft % 10 === 0) {
+                            saveExamState();
+                        }
+
+                        // تحديث الوقت في الطلاب النشطين
+                        const activeStudentIndex = activeStudents.findIndex(student => student.sessionId === currentStudent.sessionId);
+                        if (activeStudentIndex !== -1) {
+                            activeStudents[activeStudentIndex].timeLeft = timeLeft;
+                            activeStudents[activeStudentIndex].lastUpdate = new Date().toISOString();
+                            localStorage.setItem('activeStudents', JSON.stringify(activeStudents));
+                        }
+
+                        if (timeLeft <= 0) {
+                            clearInterval(timerInterval);
+                            endQuiz();
+                        }
+                    }, 1000);
+                }
+            }
+        });
     </script>
 </body>
 </html>
