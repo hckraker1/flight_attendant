@@ -11,7 +11,9 @@
         .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 40px 20px; text-align: center; }
         .header .academy { font-size: 1.4em; font-weight: bold; margin: 10px 0; letter-spacing: 1px; }
         .header h1 { font-size: 2.5em; margin: 15px 0; }
-        .header .cap { font-size: 1.2em; font-weight: bold; margin-top: 15px; letter-spacing: 0.5px; }
+        .header .cap { font-size: 1.2em; font-weight: bold; letter-spacing: 0.5px; }
+        .header .supervisor { font-size: 1.2em; font-weight: bold; color: #ffffff; }
+        .cap-supervisor { display: flex; justify-content: center; gap: 20px; margin-top: 15px; }
         .content { padding: 40px; }
         .section { display: none; }
         .section.active { display: block; }
@@ -47,6 +49,9 @@
         .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4); }
         .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
         .btn-secondary { background: #e0e0e0; color: #333; }
+        .btn-danger { background: #f44336; color: white; }
+        .btn-success { background: #4caf50; color: white; }
+        .btn-warning { background: #ff9800; color: white; }
         .score-board { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 10px; text-align: center; margin: 20px 0; }
         .score-board h2 { font-size: 2em; margin-bottom: 10px; }
         .score-details { background: #f8f9ff; padding: 20px; border-radius: 10px; margin: 20px 0; }
@@ -65,9 +70,10 @@
         .teacher-panel { text-align: center; }
         .teacher-panel h2 { color: #667eea; margin-bottom: 20px; }
         .student-list { margin-top: 30px; }
-        .student-card { background: #f8f9ff; border-radius: 10px; padding: 20px; margin-bottom: 15px; border-right: 4px solid #667eea; }
+        .student-card { background: #f8f9ff; border-radius: 10px; padding: 20px; margin-bottom: 15px; border-right: 4px solid #667eea; position: relative; }
         .student-card h4 { color: #667eea; margin-bottom: 10px; }
         .student-card p { margin: 5px 0; }
+        .student-actions { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; }
         .question-details { margin-top: 15px; }
         .question-result { padding: 10px; margin: 5px 0; border-radius: 5px; }
         .question-result.correct { background: #c8e6c9; color: #1b5e20; }
@@ -80,6 +86,14 @@
         .back-link a { color: #667eea; text-decoration: none; font-weight: bold; }
         .error-message { color: #f44336; margin-top: 5px; font-size: 0.9em; }
         .success-message { color: #4caf50; margin-top: 5px; font-size: 0.9em; }
+        .edit-form { background: #f8f9ff; padding: 20px; border-radius: 10px; margin: 15px 0; border: 2px solid #667eea; }
+        .edit-form h4 { color: #667eea; margin-bottom: 15px; }
+        .action-buttons { display: flex; gap: 10px; justify-content: center; margin-top: 20px; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; }
+        .modal-content { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 10px; width: 90%; max-width: 500px; }
+        .modal-buttons { display: flex; gap: 15px; justify-content: center; margin-top: 20px; }
+        .no-data { text-align: center; color: #666; padding: 40px; font-size: 1.1em; }
+        .question-text { font-weight: bold; margin-bottom: 10px; color: #333; }
     </style>
 </head>
 <body>
@@ -89,7 +103,8 @@
             <h1>✈️ امتحان عالم الطيران</h1>
             <div class="academy">قسم الضيافة الجوية</div>
             <p style="margin-top: 15px; font-size: 0.95em;">30 سؤال - 30 دقيقة</p>
-            <div class="cap">CAP: Peter N.T</div>
+            <div class="cap">CAP: Peter</div>
+            <div class="supervisor">تحت اشراف: Cop: Basmala</div>
         </div>
         
         <div class="content">
@@ -102,6 +117,7 @@
                         <div style="margin-top: 10px;">✓ يجب إدخال الاسم الكامل</div>
                         <div>✓ يجب إدخال رقم امتحان غير مكرر</div>
                         <div>✓ لا يمكن بدء الامتحان بدون التسجيل</div>
+                        <div>✓ الأسئلة والخيارات عشوائية لكل طالب</div>
                     </div>
                     <div class="login-form">
                         <div class="form-group">
@@ -149,7 +165,7 @@
             <!-- صفحة تقارير المدرس -->
             <div id="teacherPanel" class="section">
                 <div class="teacher-panel">
-                    <h2>📊 تقارير الطلاب</h2>
+                    <h2>📊 لوحة تحكم المدرس</h2>
                     
                     <div class="stats-grid">
                         <div class="stat-box">
@@ -162,12 +178,17 @@
                         </div>
                         <div class="stat-box">
                             <h3>أعلى نتيجة</h3>
-                            <div class="number" id="highestScore">0</div>
+                            <div class="number" id="highestScore">0%</div>
                         </div>
                         <div class="stat-box">
                             <h3>أقل نتيجة</h3>
-                            <div class="number" id="lowestScore">0</div>
+                            <div class="number" id="lowestScore">0%</div>
                         </div>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button class="btn-warning" onclick="exportData()">📥 تصدير البيانات</button>
+                        <button class="btn-danger" onclick="clearAllData()">🗑️ مسح كل البيانات</button>
                     </div>
                     
                     <div class="student-list" id="studentList">
@@ -192,6 +213,12 @@
                 <div class="lesson-content">
                     <h2>📚 تعليمات الامتحان</h2>
                     <div class="emoji">✈️</div>
+                    <h3>مميزات النظام:</h3>
+                    <ul>
+                        <li><strong>أسئلة عشوائية:</strong> كل طالب يحصل على ترتيب مختلف للأسئلة</li>
+                        <li><strong>خيارات عشوائية:</strong> ترتيب الإجابات يتغير لكل طالب</li>
+                        <li><strong>نظام آمن:</strong> منع الغش والتشابه بين الامتحانات</li>
+                    </ul>
                     <h3>أنواع الأسئلة:</h3>
                     <ul>
                         <li><strong>اختيار من متعدد:</strong> اختر الإجابة الصحيحة (أ، ب، ج، د)</li>
@@ -223,6 +250,7 @@
                         <div>✓ 30 دقيقة وقت</div>
                         <div>✓ نظام خصم</div>
                         <div>✓ تركيز ضروري</div>
+                        <div>✓ أسئلة وخيارات عشوائية</div>
                     </div>
                     <div class="nav-buttons">
                         <button class="btn-primary" onclick="startQuiz()">ابدأ الآن</button>
@@ -265,10 +293,21 @@
                         <p><strong>النقاط النهائية:</strong> <span id="totalPoints">0</span>/30</p>
                     </div>
                     <div class="nav-buttons">
-                        <button class="btn-primary" onclick="restartQuiz()">إعادة الامتحان</button>
-                        <button class="btn-secondary" onclick="showSection('studentRegistration')">الصفحة الرئيسية</button>
+                        <button class="btn-secondary" onclick="showSection('studentRegistration')">العودة للصفحة الرئيسية</button>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة التأكيد -->
+    <div id="confirmModal" class="modal">
+        <div class="modal-content">
+            <h3 id="modalTitle">تأكيد العملية</h3>
+            <p id="modalMessage">هل أنت متأكد من أنك تريد تنفيذ هذه العملية؟</p>
+            <div class="modal-buttons">
+                <button class="btn-danger" id="confirmAction">نعم</button>
+                <button class="btn-secondary" onclick="closeModal()">إلغاء</button>
             </div>
         </div>
     </div>
@@ -319,6 +358,7 @@
         let answered = false;
         let studentAnswers = [];
         let currentStudent = null;
+        let currentEditIndex = null;
         
         // تخزين بيانات الطلاب
         let studentsData = JSON.parse(localStorage.getItem('studentsData')) || [];
@@ -408,22 +448,22 @@
             studentList.innerHTML = '';
             
             if (studentsData.length === 0) {
-                studentList.innerHTML = '<p>لا توجد بيانات للطلاب بعد</p>';
+                studentList.innerHTML = '<div class="no-data">لا توجد بيانات للطلاب بعد</div>';
                 document.getElementById('totalStudents').textContent = '0';
                 document.getElementById('averageScore').textContent = '0%';
-                document.getElementById('highestScore').textContent = '0';
-                document.getElementById('lowestScore').textContent = '0';
+                document.getElementById('highestScore').textContent = '0%';
+                document.getElementById('lowestScore').textContent = '0%';
                 return;
             }
             
             // تحديث الإحصائيات
             document.getElementById('totalStudents').textContent = studentsData.length;
             
-            const scores = studentsData.map(student => student.score);
-            const averageScore = scores.reduce((a, b) => a + b, 0) / scores.length;
+            const scores = studentsData.map(student => student.score || 0);
+            const averageScore = scores.length > 0 ? scores.reduce((a, b) => a + b, 0) / scores.length : 0;
             document.getElementById('averageScore').textContent = Math.round(averageScore) + '%';
-            document.getElementById('highestScore').textContent = Math.max(...scores) + '%';
-            document.getElementById('lowestScore').textContent = Math.min(...scores) + '%';
+            document.getElementById('highestScore').textContent = scores.length > 0 ? Math.max(...scores) + '%' : '0%';
+            document.getElementById('lowestScore').textContent = scores.length > 0 ? Math.min(...scores) + '%' : '0%';
             
             // عرض قائمة الطلاب
             studentsData.forEach((student, index) => {
@@ -432,13 +472,20 @@
                 
                 studentCard.innerHTML = `
                     <h4>${student.name} (رقم الامتحان: ${student.examNumber})</h4>
-                    <p><strong>النتيجة:</strong> ${student.score}%</p>
-                    <p><strong>الإجابات الصحيحة:</strong> ${student.correctAnswers} من 30</p>
-                    <p><strong>الوقت:</strong> ${student.timeTaken}</p>
-                    <p><strong>تاريخ الامتحان:</strong> ${new Date(student.endTime).toLocaleString('ar-EG')}</p>
-                    <button class="btn-secondary" onclick="showStudentDetails(${index})" style="margin-top: 10px;">عرض التفاصيل</button>
+                    <p><strong>النتيجة:</strong> ${student.score || 0}%</p>
+                    <p><strong>الإجابات الصحيحة:</strong> ${student.correctAnswers || 0} من 30</p>
+                    <p><strong>الوقت:</strong> ${student.timeTaken || '00:00'}</p>
+                    <p><strong>تاريخ الامتحان:</strong> ${student.endTime ? new Date(student.endTime).toLocaleString('ar-EG') : 'لم يكمل'}</p>
+                    <div class="student-actions">
+                        <button class="btn-warning" onclick="editStudent(${index})">✏️ تعديل</button>
+                        <button class="btn-success" onclick="showStudentDetails(${index})">📊 التفاصيل</button>
+                        <button class="btn-danger" onclick="confirmDelete(${index})">🗑️ حذف</button>
+                    </div>
                     <div id="studentDetails${index}" class="question-details" style="display: none;">
                         ${generateStudentDetails(student)}
+                    </div>
+                    <div id="editForm${index}" class="edit-form" style="display: none;">
+                        ${generateEditForm(student, index)}
                     </div>
                 `;
                 
@@ -449,8 +496,11 @@
         // عرض تفاصيل الطالب
         function showStudentDetails(index) {
             const detailsElement = document.getElementById(`studentDetails${index}`);
+            const editElement = document.getElementById(`editForm${index}`);
+            
             if (detailsElement.style.display === 'none') {
                 detailsElement.style.display = 'block';
+                if (editElement) editElement.style.display = 'none';
             } else {
                 detailsElement.style.display = 'none';
             }
@@ -458,17 +508,26 @@
         
         // توليد تفاصيل إجابات الطالب
         function generateStudentDetails(student) {
+            if (!student.answers || student.answers.length === 0) {
+                return '<p>لا توجد تفاصيل للإجابات</p>';
+            }
+            
             let html = '<h4>تفاصيل الإجابات:</h4>';
             
             student.answers.forEach((answer, qIndex) => {
-                const question = allQuestions[qIndex];
-                const isCorrect = answer.selected === question.ans;
+                const isCorrect = answer.correct;
+                const selectedOption = answer.selectedOption || 'لم يتم الإجابة';
+                const correctOption = answer.correctOption || 'غير معروف';
+                
+                // الحصول على نص السؤال الأصلي
+                const originalQuestion = allQuestions[answer.originalIndex] || { q: 'سؤال غير معروف' };
                 
                 html += `
                     <div class="question-result ${isCorrect ? 'correct' : 'incorrect'}">
-                        <p><strong>س ${qIndex + 1}:</strong> ${question.q}</p>
-                        <p><strong>إجابتك:</strong> ${question.opts[answer.selected]}</p>
-                        <p><strong>الإجابة الصحيحة:</strong> ${question.opts[question.ans]}</p>
+                        <div class="question-text">س ${qIndex + 1}: ${originalQuestion.q}</div>
+                        <p><strong>إجابتك:</strong> ${selectedOption}</p>
+                        <p><strong>الحالة:</strong> ${isCorrect ? '✅ صحيح' : '❌ خطأ'}</p>
+                        ${!isCorrect ? `<p><strong>الإجابة الصحيحة:</strong> ${correctOption}</p>` : ''}
                     </div>
                 `;
             });
@@ -476,16 +535,162 @@
             return html;
         }
         
-        // وظائف الامتحان
-        function shuffle(arr) {
-            let a = [...arr];
-            for (let i = a.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [a[i], a[j]] = [a[j], a[i]];
-            }
-            return a;
+        // توليد نموذج التعديل
+        function generateEditForm(student, index) {
+            return `
+                <h4>تعديل بيانات الطالب</h4>
+                <div class="form-group">
+                    <label>الاسم:</label>
+                    <input type="text" id="editName${index}" class="form-control" value="${student.name}">
+                </div>
+                <div class="form-group">
+                    <label>رقم الامتحان:</label>
+                    <input type="number" id="editExamNumber${index}" class="form-control" value="${student.examNumber}">
+                </div>
+                <div class="form-group">
+                    <label>النتيجة (%):</label>
+                    <input type="number" id="editScore${index}" class="form-control" value="${student.score || 0}" min="0" max="100">
+                </div>
+                <div class="form-group">
+                    <label>الإجابات الصحيحة:</label>
+                    <input type="number" id="editCorrect${index}" class="form-control" value="${student.correctAnswers || 0}" min="0" max="30">
+                </div>
+                <div class="student-actions">
+                    <button class="btn-success" onclick="saveEdit(${index})">💾 حفظ</button>
+                    <button class="btn-secondary" onclick="cancelEdit(${index})">❌ إلغاء</button>
+                </div>
+            `;
         }
         
+        // تعديل بيانات الطالب
+        function editStudent(index) {
+            const detailsElement = document.getElementById(`studentDetails${index}`);
+            const editElement = document.getElementById(`editForm${index}`);
+            
+            if (detailsElement) detailsElement.style.display = 'none';
+            if (editElement) editElement.style.display = 'block';
+            currentEditIndex = index;
+        }
+        
+        // حفظ التعديلات
+        function saveEdit(index) {
+            const name = document.getElementById(`editName${index}`).value.trim();
+            const examNumber = document.getElementById(`editExamNumber${index}`).value;
+            const score = parseInt(document.getElementById(`editScore${index}`).value) || 0;
+            const correctAnswers = parseInt(document.getElementById(`editCorrect${index}`).value) || 0;
+            
+            if (!name || !examNumber) {
+                alert('يرجى ملء جميع الحقول بشكل صحيح');
+                return;
+            }
+            
+            // التحقق من عدم تكرار رقم الامتحان
+            const isDuplicate = studentsData.some((student, i) => i !== index && student.examNumber == examNumber);
+            if (isDuplicate) {
+                alert('رقم الامتحان مستخدم مسبقاً');
+                return;
+            }
+            
+            studentsData[index].name = name;
+            studentsData[index].examNumber = examNumber;
+            studentsData[index].score = score;
+            studentsData[index].correctAnswers = correctAnswers;
+            
+            localStorage.setItem('studentsData', JSON.stringify(studentsData));
+            updateTeacherPanel();
+            
+            alert('تم حفظ التعديلات بنجاح');
+        }
+        
+        // إلغاء التعديل
+        function cancelEdit(index) {
+            const editElement = document.getElementById(`editForm${index}`);
+            if (editElement) editElement.style.display = 'none';
+            currentEditIndex = null;
+        }
+        
+        // تأكيد الحذف
+        function confirmDelete(index) {
+            const student = studentsData[index];
+            document.getElementById('modalTitle').textContent = 'تأكيد الحذف';
+            document.getElementById('modalMessage').textContent = `هل أنت متأكد من أنك تريد حذف الطالب ${student.name} (رقم ${student.examNumber})؟`;
+            document.getElementById('confirmAction').onclick = () => deleteStudent(index);
+            document.getElementById('confirmModal').style.display = 'block';
+        }
+        
+        // حذف الطالب
+        function deleteStudent(index) {
+            studentsData.splice(index, 1);
+            localStorage.setItem('studentsData', JSON.stringify(studentsData));
+            updateTeacherPanel();
+            closeModal();
+            alert('تم حذف الطالب بنجاح');
+        }
+        
+        // تصدير البيانات
+        function exportData() {
+            const dataStr = JSON.stringify(studentsData, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'students_data.json';
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+        
+        // مسح كل البيانات
+        function clearAllData() {
+            document.getElementById('modalTitle').textContent = 'تأكيد المسح';
+            document.getElementById('modalMessage').textContent = 'هل أنت متأكد من أنك تريد مسح جميع بيانات الطلاب؟ لا يمكن التراجع عن هذه العملية.';
+            document.getElementById('confirmAction').onclick = performClearAll;
+            document.getElementById('confirmModal').style.display = 'block';
+        }
+        
+        function performClearAll() {
+            studentsData = [];
+            localStorage.setItem('studentsData', JSON.stringify(studentsData));
+            updateTeacherPanel();
+            closeModal();
+            alert('تم مسح جميع البيانات بنجاح');
+        }
+        
+        // إغلاق النافذة
+        function closeModal() {
+            document.getElementById('confirmModal').style.display = 'none';
+        }
+        
+        // وظائف عشوائية للأسئلة والخيارات
+        function shuffleArray(array) {
+            const newArray = [...array];
+            for (let i = newArray.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+            }
+            return newArray;
+        }
+        
+        function shuffleQuestionsAndOptions() {
+            // نسخ الأسئلة الأصلية
+            const shuffledQuestions = shuffleArray([...allQuestions]);
+            
+            // خلط الخيارات لكل سؤال
+            shuffledQuestions.forEach(question => {
+                // حفظ الإجابة الصحيحة الأصلية
+                const correctAnswer = question.opts[question.ans];
+                
+                // خلط الخيارات
+                const shuffledOptions = shuffleArray([...question.opts]);
+                
+                // تحديث الإجابة الصحيحة بناءً على الترتيب الجديد
+                question.ans = shuffledOptions.indexOf(correctAnswer);
+                question.opts = shuffledOptions;
+            });
+            
+            return shuffledQuestions;
+        }
+        
+        // وظائف الامتحان
         function goToStart() {
             showSection('startScreen');
         }
@@ -502,7 +707,8 @@
                 return;
             }
             
-            questions = shuffle(allQuestions);
+            // توليد أسئلة عشوائية لكل طالب
+            questions = shuffleQuestionsAndOptions();
             currentQuestion = 0;
             score = 0;
             correct = 0;
@@ -575,11 +781,19 @@
             const feedback = document.getElementById('feedback');
             const nextBtn = document.getElementById('nextBtn');
             
-            // حفظ إجابة الطالب
+            // حفظ إجابة الطالب مع المعلومات الأصلية
+            const originalQuestionIndex = allQuestions.findIndex(originalQ => 
+                originalQ.q === q.q && originalQ.type === q.type
+            );
+            
             studentAnswers.push({
                 questionIndex: currentQuestion,
                 selected: idx,
-                correct: idx === q.ans
+                correct: idx === q.ans,
+                originalIndex: originalQuestionIndex,
+                selectedOption: q.opts[idx],
+                correctOption: q.opts[q.ans],
+                correctAnswer: q.ans
             });
             
             if (idx === q.ans) {
@@ -623,7 +837,10 @@
                     finalScore: finalScore.toFixed(1),
                     timeTaken: formatTime(1800 - timeLeft),
                     endTime: new Date().toISOString(),
-                    answers: studentAnswers
+                    answers: studentAnswers,
+                    questionsOrder: questions.map(q => allQuestions.findIndex(originalQ => 
+                        originalQ.q === q.q && originalQ.type === q.type
+                    ))
                 };
                 
                 studentsData.push(studentResult);
@@ -644,12 +861,6 @@
             else if (percentage >= 70) document.getElementById('resultTitle').innerHTML = '👍 جيد جداً!';
             else if (percentage >= 60) document.getElementById('resultTitle').innerHTML = '👌 جيد!';
             else document.getElementById('resultTitle').innerHTML = '💪 حاول مرة أخرى!';
-        }
-        
-        function restartQuiz() {
-            document.getElementById('results').style.display = 'none';
-            document.getElementById('quizContainer').style.display = 'block';
-            startQuiz();
         }
         
         // وظيفة مساعدة لتنسيق الوقت
